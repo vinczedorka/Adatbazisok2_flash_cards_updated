@@ -4,6 +4,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: '/Adatbazisok2_flash_cards/',
+  build: {
+    // Ensure assets are properly referenced
+    assetsDir: 'assets',
+    // Generate sourcemaps for better debugging
+    sourcemap: true,
+  },
   plugins: [
     react(),
     VitePWA({
@@ -19,15 +25,15 @@ export default defineConfig({
         background_color: '#111827',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '.',
+        start_url: '/Adatbazisok2_flash_cards/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: '/Adatbazisok2_flash_cards/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: '/Adatbazisok2_flash_cards/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
