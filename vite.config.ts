@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
 export default defineConfig({
-  base: '/Adatbazisok2_flash_cards/',
+  base: process.env.NODE_ENV === 'production' ? '/Adatbazisok2_flash_cards/' : '/',
   plugins: [
     react(),
     VitePWA({

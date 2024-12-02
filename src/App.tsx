@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "./components/ui/Card";
 import { Button } from "./components/ui/Button";
+import { config } from './config';
 import MarkdownRenderer from "./MarkdownRenderer";
 import FlipCard from "./components/ui/Flippcard";
 import QuestionRangeSelector from "./components/QuestionRangeSelector";
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 
 
+// Type definitions
 type Flashcard = {
   id: number;
   question: string;
@@ -209,7 +211,7 @@ export default function FlashcardApp() {
         const imageMatch = line.match(/!\[.*?\]\((.*?)\)/);
         if (imageMatch && imageMatch[1]) {
           hasImage = true;
-          currentImagePath = imageMatch[1].replace("./images/", "/images/");
+          currentImagePath = imageMatch[1].replace("./images/", `${config.baseUrl}/images/`);
           if (currentAnswer.trim() === "") {
             // currentAnswer = "See diagram above";
           }
@@ -739,15 +741,15 @@ export default function FlashcardApp() {
               </span>
             </div>
           </div>
-        </div>
 
-        {/* Card Stats */}
-        {currentCard && (
-          <div className="text-sm text-gray-500 flex justify-center gap-4">
-            <span>Correct: {currentCard.timesCorrect}</span>
-            <span>Incorrect: {currentCard.timesIncorrect}</span>
-          </div>
-        )}
+          {/* Card Stats */}
+          {currentCard && (
+            <div className="text-sm text-gray-500 flex justify-center gap-4">
+              <span>Correct: {currentCard.timesCorrect}</span>
+              <span>Incorrect: {currentCard.timesIncorrect}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
