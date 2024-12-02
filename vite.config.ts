@@ -1,19 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import path from 'path'
 
 export default defineConfig({
-  base: '/Adatbazisok2_flash_cards/',
-  build: {
-    assetsDir: 'assets',
-    rollupOptions: {
-      output: {
-        assetFileNames: 'assets/[name]-[hash][extname]',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        entryFileNames: 'assets/[name]-[hash].js',
-      },
-    },
-  },
+  base: './',  // This is the key change
   plugins: [
     react(),
     VitePWA({
@@ -45,5 +36,10 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
+  }
 })
