@@ -4,7 +4,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
 export default defineConfig({
+<<<<<<< HEAD
   base: './',  // This is the key change
+=======
+  base: '/Adatbazisok2_flash_cards/',
+>>>>>>> 1271e588d8a7de9286c2fbe25f80c32542c74a02
   plugins: [
     react(),
     VitePWA({
