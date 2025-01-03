@@ -35,6 +35,7 @@ type Flashcard = {
   timesIncorrect: number;
   lastReviewed?: Date;
   isMarked?: boolean;
+  points: number;
 };
 
 type Progress = {
@@ -80,6 +81,7 @@ export default function FlashcardApp() {
   const [examIncorrect, setExamIncorrect] = useState(0);
   const [randomOrderCards, setRandomOrderCards] = useState<Flashcard[]>([]);
   const [isRandomOrder, setIsRandomOrder] = useState(false);
+  const [selectedPoints, setSelectedPoints] = useState<number[]>([]);
 
   const loadProgress = (): Progress => {
     try {
@@ -103,6 +105,8 @@ export default function FlashcardApp() {
           timesCorrect: card.timesCorrect,
           timesIncorrect: card.timesIncorrect,
           lastReviewed: card.lastReviewed,
+          points: card.points,
+          isMarked: card.isMarked,
         };
         return acc;
       }, {} as Progress["cards"]);
@@ -119,7 +123,7 @@ export default function FlashcardApp() {
   const getFilteredCards = () => {
     let filteredCards = [...cards];
 
-    // First apply range filter if selected
+    // First apply range filter if exists
     if (selectedRange) {
       filteredCards = filteredCards.filter(
         (card) => card.id >= selectedRange.start && card.id <= selectedRange.end
@@ -129,6 +133,13 @@ export default function FlashcardApp() {
       if (isRandomOrder && randomOrderCards.length > 0) {
         return randomOrderCards;
       }
+    }
+
+    // Apply points filter if any points are selected
+    if (selectedPoints.length > 0) {
+      filteredCards = filteredCards.filter((card) =>
+        selectedPoints.includes(card.points || 0)
+      );
     }
 
     // Then apply study mode filter
@@ -164,6 +175,12 @@ export default function FlashcardApp() {
 
       const processCurrentQuestion = () => {
         if (currentQuestion) {
+          // Extract points from question title
+          const pointsMatch =
+            currentQuestion.match(/\((\d+)\s*points?\)/i) ||
+            currentQuestion.match(/\((\d+)\s*pont\)/i);
+          const points = pointsMatch?.[1] ? parseInt(pointsMatch[1], 10) : 1;
+
           questions.push({
             id: currentId,
             question: currentQuestion,
@@ -172,6 +189,7 @@ export default function FlashcardApp() {
             imagePath: currentImagePath,
             timesCorrect: 0,
             timesIncorrect: 0,
+            points,
           });
         }
       };
@@ -323,6 +341,8 @@ export default function FlashcardApp() {
               lastReviewed: savedCard.lastReviewed
                 ? new Date(savedCard.lastReviewed)
                 : undefined,
+              isMarked: savedCard.isMarked,
+              points: card.points,
             };
           }
           return card;
@@ -476,12 +496,29 @@ export default function FlashcardApp() {
   const handleStartExam = (
     questionCount: number,
     startRange: number,
-    endRange: number
+    endRange: number,
+    points: number[]
   ) => {
     setSelectedRange({ start: startRange, end: endRange });
-    const availableCards = cards.filter(
+    let availableCards = cards.filter(
       (card) => card.id >= startRange && card.id <= endRange
     );
+
+    // Apply points filter if selected
+    if (points.length > 0) {
+      availableCards = availableCards.filter((card) =>
+        points.includes(card.points || 1)
+      );
+    }
+
+    // Validate card count after filtering
+    if (availableCards.length < questionCount) {
+      alert(
+        `Not enough questions available with the selected filters. Only ${availableCards.length} questions match your criteria.`
+      );
+      return;
+    }
+
     const shuffled = [...availableCards].sort(() => Math.random() - 0.5);
     const selected = shuffled.slice(0, questionCount);
 
@@ -492,6 +529,7 @@ export default function FlashcardApp() {
     setCurrentCardIndex(0);
     setShowAnswer(false);
     setFilteredCards(selected);
+    setShowExamSetup(false);
   };
 
   const handleExamClose = () => {
@@ -593,6 +631,8 @@ export default function FlashcardApp() {
     currentCardIndex,
     isExamMode,
     examCards,
+    selectedPoints,
+    isRandomOrder,
   ]);
 
   const currentCard = isExamMode
@@ -761,33 +801,35 @@ export default function FlashcardApp() {
         {showRangeSelector && (
           <QuestionRangeSelector
             totalQuestions={cards.length}
-            onSelectRange={(start, end, randomOrder) => {
+            initialRange={selectedRange}
+            onSelectRange={(start, end, randomOrder, points) => {
               setSelectedRange({ start, end });
               setIsRandomOrder(randomOrder);
+              setSelectedPoints(points);
 
-              // Find cards in the range
+              // Filter cards by both range and points
               const cardsInRange = cards.filter(
-                (card) => card.id >= start && card.id <= end
+                (card) =>
+                  card.id >= start &&
+                  card.id <= end &&
+                  (points.length === 0 || points.includes(card.points || 1))
               );
 
-              // If random order, create a shuffled array
               if (randomOrder) {
                 const shuffled = [...cardsInRange].sort(
                   () => Math.random() - 0.5
                 );
                 setRandomOrderCards(shuffled);
-                // Start from the beginning of the shuffled array
                 const startIndex = cards.findIndex(
                   (card) => shuffled[0] && card.id === shuffled[0].id
                 );
-                setCurrentCardIndex(startIndex);
+                setCurrentCardIndex(Math.max(startIndex, 0));
               } else {
                 setRandomOrderCards([]);
-                // Start from the first card in sequential order
                 const startIndex = cards.findIndex(
                   (card) => cardsInRange[0] && card.id === cardsInRange[0].id
                 );
-                setCurrentCardIndex(startIndex);
+                setCurrentCardIndex(Math.max(startIndex, 0));
               }
               setShowAnswer(false);
             }}
@@ -959,9 +1001,11 @@ export default function FlashcardApp() {
 
           {/* Card Stats */}
           {currentCard && (
-            <div className="text-sm text-gray-500 flex justify-center gap-4">
-              <span>Correct: {currentCard.timesCorrect}</span>
-              <span>Incorrect: {currentCard.timesIncorrect}</span>
+            <div className="col-span-3 p-3">
+              <div className="text-sm text-gray-500 flex justify-center gap-4">
+                <span>Correct: {currentCard.timesCorrect}</span>
+                <span>Incorrect: {currentCard.timesIncorrect}</span>
+              </div>
             </div>
           )}
         </div>
@@ -969,6 +1013,7 @@ export default function FlashcardApp() {
       {showExamSetup && (
         <ExamSetup
           totalQuestions={cards.length}
+          cards={cards}
           onStartExam={handleStartExam}
           onClose={() => setShowExamSetup(false)}
         />
