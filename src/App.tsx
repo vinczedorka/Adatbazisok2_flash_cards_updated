@@ -807,7 +807,7 @@ export default function FlashcardApp() {
 
   // Add UI elements to render
   const renderCardControls = () => (
-    <div className="grid grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-3 gap-2 md:gap-4">
       {!isExamMode ? (
         <>
           <Button onClick={handleUnknown} variant="destructive">
@@ -846,11 +846,11 @@ export default function FlashcardApp() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
-      <div className="container mx-auto px-4 pt-8 max-w-6xl">
+    <div className="min-h-screen h-screen md:min-h-screen bg-gray-900 text-gray-100 overflow-hidden md:overflow-auto">
+      <div className="container mx-auto px-4 pt-4 md:pt-8 max-w-6xl h-full flex flex-col md:block">
         {/* Header */}
-        <div className="flex flex-row justify-between items-center gap-4 mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+        <div className="flex flex-row justify-between items-center gap-4 mb-3 md:mb-6 flex-shrink-0">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
             Adatbázisok 2 vizsga
           </h1>
           {/* Mobile Menu Button - hide during exam */}
@@ -1071,8 +1071,8 @@ export default function FlashcardApp() {
         )}
 
         {/* Progress Indicator */}
-        <div className="mb-4">
-          <div className="flex justify-between items-center mb-2 text-sm text-gray-400">
+        <div className="mb-2 md:mb-4 flex-shrink-0">
+          <div className="flex justify-between items-center mb-1 md:mb-2 text-xs md:text-sm text-gray-400">
             <span>
               {isExamMode
                 ? `Question ${currentCardIndex + 1} of ${examCards.length}`
@@ -1111,7 +1111,7 @@ export default function FlashcardApp() {
             {/* First card - Question */}
             <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
               <CardContent className="p-4 sm:p-6">
-                <div className="h-[45vh] sm:h-[60vh] max-h-[600px] flex flex-col">
+                <div className="h-[45vh] md:h-[600px] flex flex-col">
                   <div className="mb-3 sm:mb-4 text-sm font-medium text-gray-400">
                     Question:
                   </div>
@@ -1130,7 +1130,7 @@ export default function FlashcardApp() {
             {/* Second card - Answer */}
             <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
               <CardContent className="p-4 sm:p-6">
-                <div className="h-[45vh] sm:h-[60vh] max-h-[600px] flex flex-col">
+                <div className="h-[45vh] md:h-[600px] flex flex-col">
                   <div className="mb-3 sm:mb-4 text-sm font-medium text-gray-400">
                     Answer:
                   </div>
@@ -1147,44 +1147,46 @@ export default function FlashcardApp() {
             </Card>
           </div>
         ) : (
-          <FlipCard
-            question={currentCard?.question}
-            answer={currentCard?.answer}
-            imagePath={currentCard?.imagePath}
-            onKnow={handleKnown}
-            onDontKnow={handleUnknown}
-            showAnswer={showAnswer}
-            setShowAnswer={setShowAnswer}
-            currentIndex={currentCardIndex}
-          />
+          <div className="flex-1 min-h-0 md:flex-none md:h-auto mb-4">
+            <FlipCard
+              question={currentCard?.question}
+              answer={currentCard?.answer}
+              imagePath={currentCard?.imagePath}
+              onKnow={handleKnown}
+              onDontKnow={handleUnknown}
+              showAnswer={showAnswer}
+              setShowAnswer={setShowAnswer}
+              currentIndex={currentCardIndex}
+            />
+          </div>
         )}
         {/* Action Buttons */}
-        <div className="mt-4">
+        <div className="mt-2 md:mt-4 flex-shrink-0">
           {renderCardControls()}
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-8 mb-4">
-          <div className="p-3 bg-gray-800 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">Known</span>
-              <span className="text-xl font-bold text-green-400">
+        <div className="grid grid-cols-3 gap-2 md:gap-8 mb-2 md:mb-4 flex-shrink-0">
+          <div className="p-1.5 md:p-3 bg-gray-800 rounded-lg">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-0.5 md:gap-0">
+              <span className="text-[10px] md:text-sm text-gray-400">Known</span>
+              <span className="text-sm md:text-xl font-bold text-green-400">
                 {knownCards.length}
               </span>
             </div>
           </div>
-          <div className="p-3 bg-gray-800 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">Need Practice</span>
-              <span className="text-xl font-bold text-red-400">
+          <div className="p-1.5 md:p-3 bg-gray-800 rounded-lg">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-0.5 md:gap-0">
+              <span className="text-[10px] md:text-sm text-gray-400">Practice</span>
+              <span className="text-sm md:text-xl font-bold text-red-400">
                 {unknownCards.length}
               </span>
             </div>
           </div>
-          <div className="p-3 bg-gray-800 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">Marked</span>
-              <span className="text-xl font-bold text-yellow-400">
+          <div className="p-1.5 md:p-3 bg-gray-800 rounded-lg">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-0.5 md:gap-0">
+              <span className="text-[10px] md:text-sm text-gray-400">Marked</span>
+              <span className="text-sm md:text-xl font-bold text-yellow-400">
                 {cards.filter((card) => card.isMarked).length}
               </span>
             </div>
@@ -1192,8 +1194,8 @@ export default function FlashcardApp() {
 
           {/* Card Stats */}
           {currentCard && (
-            <div className="col-span-3 p-3">
-              <div className="text-sm text-gray-500 flex justify-center gap-4">
+            <div className="col-span-3 p-0.5 md:p-3">
+              <div className="text-[10px] md:text-sm text-gray-500 flex justify-center gap-3 md:gap-4">
                 <span>Correct: {currentCard.timesCorrect}</span>
                 <span>Incorrect: {currentCard.timesIncorrect}</span>
               </div>
