@@ -851,7 +851,7 @@ export default function FlashcardApp() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-            Adatbázisok 2 vizsga kérdések
+            Adatbázisok 2 vizsga
           </h1>
           {/* Mobile Menu Button - hide during exam */}
           {!isExamMode && (
