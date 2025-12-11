@@ -39,42 +39,49 @@ const FlipCard: React.FC<FlipCardProps> = ({
     setIsDragging(true);
   };
 
-  const handleDragEnd = async (_event: MouseEvent | TouchEvent | PointerEvent, info: { offset: { x: number } }) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: { offset: { x: number } }) => {
     setIsDragging(false);
     const { offset } = info;
 
     if (offset.x > 100) {
-      await controls.start({ x: 500, opacity: 0 });
-      onKnow();
-      setShowAnswer(false);
-      await controls.start({ x: -500, opacity: 0, transition: { duration: 0 } });
-      await controls.start({ x: 0, opacity: 1, transition: { duration: 0.3 } });
+      controls.start({ x: 500, opacity: 0 }).then(() => {
+        onKnow();
+        setShowAnswer(false);
+        controls.start({ x: -500, opacity: 0, transition: { duration: 0 } }).then(() => {
+          controls.start({ x: 0, opacity: 1, transition: { duration: 0.3 } });
+        });
+      });
     } else if (offset.x < -100) {
-      await controls.start({ x: -500, opacity: 0 });
-      onDontKnow();
-      setShowAnswer(false);
-      await controls.start({ x: 500, opacity: 0, transition: { duration: 0 } });
-      await controls.start({ x: 0, opacity: 1, transition: { duration: 0.3 } });
+      controls.start({ x: -500, opacity: 0 }).then(() => {
+        onDontKnow();
+        setShowAnswer(false);
+        controls.start({ x: 500, opacity: 0, transition: { duration: 0 } }).then(() => {
+          controls.start({ x: 0, opacity: 1, transition: { duration: 0.3 } });
+        });
+      });
     } else {
       controls.start({ x: 0, opacity: 1 });
     }
   };
 
-  const handleClick = async () => {
+  const handleClick = () => {
     if (!isDragging && !isFlipping) {
       setIsFlipping(true);
-      setShowAnswer(!showAnswer);
-      setTimeout(() => {
-        setIsFlipping(false);
-      }, 600);
+      // Use requestAnimationFrame to defer state update
+      requestAnimationFrame(() => {
+        setShowAnswer(!showAnswer);
+        setTimeout(() => {
+          setIsFlipping(false);
+        }, 600);
+      });
     }
   };
 
   return (
-    <div className="mb-2 md:mb-4 relative h-full md:h-[600px]">
+    <div className="mb-2 md:mb-4 relative h-full md:h-[500px]">
 
       <motion.div
-        style={{ x, rotate, opacity }}
+        style={{ x, rotate, opacity, willChange: 'transform' }}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.1}
@@ -83,8 +90,6 @@ const FlipCard: React.FC<FlipCardProps> = ({
         onDragEnd={handleDragEnd}
         className="cursor-pointer relative h-full"
         onClick={handleClick}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
         animate={controls}
       >
         <div className="perspective-1000 h-full">
@@ -93,13 +98,15 @@ const FlipCard: React.FC<FlipCardProps> = ({
               rotateY: showAnswer ? 180 : 0,
             }}
             transition={{
-              duration: 0.5,
-              type: "tween",
-              ease: "easeInOut"
+              duration: 0.4,
+              type: "spring",
+              stiffness: 260,
+              damping: 20
             }}
             className="w-full h-full preserve-3d relative"
             style={{
-              transformOrigin: "center center"
+              transformOrigin: "center center",
+              willChange: 'transform'
             }}
           >
             {/* Question side */}

@@ -534,7 +534,8 @@ export default function FlashcardApp() {
         }
       }
 
-      saveProgress(updatedCards, currentCardIndex);
+      // Defer save to not block UI
+      queueMicrotask(() => saveProgress(updatedCards, currentCardIndex));
     }
   };
 
@@ -593,7 +594,8 @@ export default function FlashcardApp() {
         }
       }
 
-      saveProgress(updatedCards, currentCardIndex);
+      // Defer save to not block UI
+      queueMicrotask(() => saveProgress(updatedCards, currentCardIndex));
     }
   };
 
@@ -1111,7 +1113,7 @@ export default function FlashcardApp() {
             {/* First card - Question */}
             <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
               <CardContent className="p-4 sm:p-6">
-                <div className="h-[45vh] md:h-[600px] flex flex-col">
+                <div className="h-[45vh] md:h-[500px] flex flex-col">
                   <div className="mb-3 sm:mb-4 text-sm font-medium text-gray-400">
                     Question:
                   </div>
@@ -1130,7 +1132,7 @@ export default function FlashcardApp() {
             {/* Second card - Answer */}
             <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
               <CardContent className="p-4 sm:p-6">
-                <div className="h-[45vh] md:h-[600px] flex flex-col">
+                <div className="h-[45vh] md:h-[500px] flex flex-col">
                   <div className="mb-3 sm:mb-4 text-sm font-medium text-gray-400">
                     Answer:
                   </div>
@@ -1147,7 +1149,7 @@ export default function FlashcardApp() {
             </Card>
           </div>
         ) : (
-          <div className="flex-1 min-h-0 md:flex-none md:h-auto mb-4">
+          <div className="flex-1 min-h-0 md:flex-none md:h-[500px] mb-4">
             <FlipCard
               question={currentCard?.question}
               answer={currentCard?.answer}
