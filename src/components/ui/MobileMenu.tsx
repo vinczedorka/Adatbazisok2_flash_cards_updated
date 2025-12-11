@@ -8,6 +8,8 @@ import {
   Hash as HashIcon,
   BookmarkCheck,
   RefreshCw,
+  CloudOff,
+  Cloud,
 } from 'lucide-react';
 
 interface MobileMenuProps {
@@ -23,6 +25,8 @@ interface MobileMenuProps {
   onToggleRangeSelector: () => void;
   onRefreshCache: () => void;
   isRefreshing: boolean;
+  offlineModeEnabled: boolean;
+  onToggleOfflineMode: () => void;
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({
@@ -38,6 +42,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   onToggleRangeSelector,
   onRefreshCache,
   isRefreshing,
+  offlineModeEnabled,
+  onToggleOfflineMode,
 }) => {
   if (!isOpen) return null;
 
@@ -117,16 +123,30 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
         <Button
           variant="outline"
-          className="w-full justify-start border-gray-700"
+          className={`w-full justify-start border-gray-700 ${offlineModeEnabled ? 'bg-green-500/20 text-green-400' : ''}`}
           onClick={() => {
-            onRefreshCache();
+            onToggleOfflineMode();
             onClose();
           }}
-          disabled={isRefreshing}
         >
-          <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh Questions
+          {offlineModeEnabled ? <CloudOff className="mr-2 h-4 w-4" /> : <Cloud className="mr-2 h-4 w-4" />}
+          Offline Mode: {offlineModeEnabled ? 'ON' : 'OFF'}
         </Button>
+
+        {offlineModeEnabled && (
+          <Button
+            variant="outline"
+            className="w-full justify-start border-gray-700"
+            onClick={() => {
+              onRefreshCache();
+              onClose();
+            }}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh Questions
+          </Button>
+        )}
 
         <Button
           variant="outline"

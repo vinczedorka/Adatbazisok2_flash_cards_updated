@@ -52,21 +52,31 @@ Az alkalmazás ezután elérhető a következő címen: `http://localhost:5173`
   - Megjelölt kártyák perzisztens tárolása
   - Vizsga és tartomány beállítások megjegyzése
 
-### Offline Támogatás
-- **Automatikus gyorsítótárazás**:
+### Offline Támogatás (Opcionális)
+- **Offline mód kapcsoló**:
+  - Kapcsolható be/ki a felhő ikon gombbal (☁️/☁️🚫) a fejlécben
+  - Mobilon a menüben található "Offline Mode: ON/OFF" opció
+  - Zöld háttér jelzi ha be van kapcsolva
+  - Teljesen opcionális funkció - döntsd el, hogy szeretnéd-e használni
+- **Automatikus gyorsítótárazás** (ha be van kapcsolva):
   - Az első betöltéskor az összes kérdés és válasz mentésre kerül helyben
   - Az alkalmazás ezután internetkapcsolat nélkül is használható
   - A haladás és statisztikák mindig mentésre kerülnek
-- **Cache státusz jelző**:
-  - Vizuális visszajelzés mutatja, hogy elérhető-e az offline mód
-  - Az utolsó frissítés időpontja látható
+  - Az offline mód kikapcsolásakor a gyorsítótár automatikusan törlődik
+- **Cache státusz jelző** (ha be van kapcsolva):
+  - Kompakt státusz jelző az oldal alján
+  - Mutatja az utolsó szinkronizáció időpontját
   - Zöld jelzés: offline módban működik
   - Kék jelzés: internetkapcsolat aktív
-- **Manuális frissítés**:
-  - Frissítés gomb (⟳) a fejlécben
+- **Manuális frissítés** (ha be van kapcsolva):
+  - Frissítés gomb (⟳) csak offline mód bekapcsolása után jelenik meg
   - Mobilon a menüben található "Refresh Questions" opció
   - Új kérdések letöltése amikor internetkapcsolat elérhető
-  - Automatikus újratöltés a frissítés után
+  - Toast értesítés mutatja a státuszt
+- **Modern értesítési rendszer**:
+  - Szép, modern toast értesítések minden műveletről
+  - Színkódolt visszajelzések (siker, hiba, info)
+  - Nem zavaró, automatikusan eltűnő üzenetek
 
 ### Navigáció és szűrés
 - **Kérdéslista**: Gyors navigáció a kérdések között
@@ -100,6 +110,7 @@ Az alkalmazás ezután elérhető a következő címen: `http://localhost:5173`
 - Tailwind CSS
 - shadcn/ui komponensek
 - Lucide ikonok
+- Sonner toast értesítések
 - Local Storage API a haladás mentéséhez és offline támogatáshoz
 
 ## Telepítés és Futtatás

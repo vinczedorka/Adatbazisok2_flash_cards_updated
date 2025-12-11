@@ -9,6 +9,7 @@ import MobileMenu from "./components/ui/MobileMenu";
 import ExamSetup from "./components/ExamSetup";
 import ExamResults from "./components/ExamResults";
 import { GraduationCap } from "lucide-react";
+import { toast, Toaster } from "sonner";
 
 import {
   CheckCircle,
@@ -23,6 +24,8 @@ import {
   BookmarkCheck,
   Menu,
   RefreshCw,
+  CloudOff,
+  Cloud,
 } from "lucide-react";
 
 // Type definitions
@@ -55,6 +58,7 @@ const PROGRESS_KEY = "flashcard-progress";
 const LAST_POSITION_KEY = "flashcard-last-position";
 const CACHED_DATA_KEY = "flashcard-cached-data";
 const CACHE_TIMESTAMP_KEY = "flashcard-cache-timestamp";
+const OFFLINE_MODE_KEY = "flashcard-offline-mode-enabled";
 
 export default function FlashcardApp() {
   const [cards, setCards] = useState<Flashcard[]>([]);
@@ -92,9 +96,17 @@ export default function FlashcardApp() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cacheTimestamp, setCacheTimestamp] = useState<string | null>(null);
   const [isUsingCache, setIsUsingCache] = useState(false);
+  const [offlineModeEnabled, setOfflineModeEnabled] = useState<boolean>(() => {
+    const saved = localStorage.getItem(OFFLINE_MODE_KEY);
+    return saved === "true";
+  });
 
   // Cache management functions
   const saveCachedData = (markdown: string) => {
+    if (!offlineModeEnabled) {
+      console.log("Offline mode disabled, skipping cache");
+      return;
+    }
     try {
       localStorage.setItem(CACHED_DATA_KEY, markdown);
       localStorage.setItem(CACHE_TIMESTAMP_KEY, new Date().toISOString());
@@ -105,6 +117,10 @@ export default function FlashcardApp() {
   };
 
   const loadCachedData = (): string | null => {
+    if (!offlineModeEnabled) {
+      console.log("Offline mode disabled, skipping cache");
+      return null;
+    }
     try {
       const cachedData = localStorage.getItem(CACHED_DATA_KEY);
       const cacheTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
@@ -118,6 +134,16 @@ export default function FlashcardApp() {
     } catch (error) {
       console.error("Error loading cached data:", error);
       return null;
+    }
+  };
+
+  const clearCachedData = () => {
+    try {
+      localStorage.removeItem(CACHED_DATA_KEY);
+      localStorage.removeItem(CACHE_TIMESTAMP_KEY);
+      console.log("Cache cleared");
+    } catch (error) {
+      console.error("Error clearing cache:", error);
     }
   };
 
@@ -446,7 +472,7 @@ export default function FlashcardApp() {
       } catch (error) {
         console.error("Error loading flashcards:", error);
         // Show user-friendly error message
-        alert("Unable to load flashcards. Please check your connection and refresh the page.");
+        toast.error("Unable to load flashcards. Please check your connection and refresh the page.");
       }
     };
 
@@ -589,7 +615,7 @@ export default function FlashcardApp() {
   };
 
   const handleRefreshCache = async () => {
-    if (isRefreshing) return;
+    if (isRefreshing || !offlineModeEnabled) return;
 
     setIsRefreshing(true);
     try {
@@ -600,13 +626,30 @@ export default function FlashcardApp() {
       }
       const markdown = await response.text();
       saveCachedData(markdown);
-      alert("Data updated successfully! The page will reload.");
-      window.location.reload();
+      toast.success("Data updated successfully! The page will reload.");
+      setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       console.error("Error refreshing data:", error);
-      alert("Failed to refresh data. Please check your internet connection.");
-    } finally {
+      toast.error("Failed to refresh data. Please check your internet connection.");
       setIsRefreshing(false);
+    }
+  };
+
+  const toggleOfflineMode = () => {
+    const newValue = !offlineModeEnabled;
+    setOfflineModeEnabled(newValue);
+    localStorage.setItem(OFFLINE_MODE_KEY, String(newValue));
+
+    if (newValue) {
+      // Offline mode enabled - cache current data
+      toast.success("Offline mode enabled! The page will reload and cache data for offline use.");
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+      // Offline mode disabled - clear cache
+      clearCachedData();
+      setCacheTimestamp(null);
+      setIsUsingCache(false);
+      toast.info("Offline mode disabled. Cached data has been cleared.");
     }
   };
 
@@ -630,7 +673,7 @@ export default function FlashcardApp() {
 
     // Validate card count after filtering
     if (availableCards.length < questionCount) {
-      alert(
+      toast.error(
         `Not enough questions available with the selected filters. Only ${availableCards.length} questions match your criteria.`
       );
       return;
@@ -805,21 +848,6 @@ export default function FlashcardApp() {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="container mx-auto px-4 pt-8 max-w-6xl">
-        {/* Cache Status Indicator */}
-        {cacheTimestamp && (
-          <div className="mb-4 p-3 bg-gray-800 rounded-lg border border-gray-700">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${isUsingCache ? 'bg-green-500' : 'bg-blue-500'}`}></div>
-                <span className="text-gray-400">
-                  {isUsingCache ? '✓ Offline mode ready' : '✓ Connected'} -
-                  Last updated: {new Date(cacheTimestamp).toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
@@ -890,13 +918,24 @@ export default function FlashcardApp() {
               <Button
                 variant="outline"
                 size="sm"
-                className="border-gray-700 hover:bg-gray-800"
-                onClick={handleRefreshCache}
-                disabled={isRefreshing}
-                title="Refresh Questions (requires internet)"
+                className={`border-gray-700 hover:bg-gray-800 ${offlineModeEnabled ? 'bg-green-500/20 text-green-400' : ''}`}
+                onClick={toggleOfflineMode}
+                title={offlineModeEnabled ? "Offline Mode: ON" : "Offline Mode: OFF"}
               >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {offlineModeEnabled ? <CloudOff className="h-4 w-4" /> : <Cloud className="h-4 w-4" />}
               </Button>
+              {offlineModeEnabled && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-700 hover:bg-gray-800"
+                  onClick={handleRefreshCache}
+                  disabled={isRefreshing}
+                  title="Refresh Questions (requires internet)"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -941,6 +980,8 @@ export default function FlashcardApp() {
           onToggleRangeSelector={() => setShowRangeSelector(true)}
           onRefreshCache={handleRefreshCache}
           isRefreshing={isRefreshing}
+          offlineModeEnabled={offlineModeEnabled}
+          onToggleOfflineMode={toggleOfflineMode}
         />
 
         {/* Add Range Selector */}
@@ -1159,7 +1200,23 @@ export default function FlashcardApp() {
             </div>
           )}
         </div>
+
+        {/* Footer with Cache Status */}
+        {offlineModeEnabled && cacheTimestamp && (
+          <div className="mt-8 pb-4 border-t border-gray-800 pt-4">
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+              <div className={`w-1.5 h-1.5 rounded-full ${isUsingCache ? 'bg-green-500' : 'bg-blue-500'}`}></div>
+              <span>
+                {isUsingCache ? 'Offline ready' : 'Connected'} · Last sync: {new Date(cacheTimestamp).toLocaleString()}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Toast Notifications */}
+      <Toaster position="top-center" richColors />
+
       {showExamSetup && (
         <ExamSetup
           totalQuestions={cards.length}
