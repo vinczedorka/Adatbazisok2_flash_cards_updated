@@ -36,6 +36,7 @@ type Flashcard = {
   lastReviewed?: Date;
   isMarked?: boolean;
   points: number;
+  tags?: string[];
 };
 
 type Progress = {
@@ -82,6 +83,9 @@ export default function FlashcardApp() {
   const [randomOrderCards, setRandomOrderCards] = useState<Flashcard[]>([]);
   const [isRandomOrder, setIsRandomOrder] = useState(false);
   const [selectedPoints, setSelectedPoints] = useState<number[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [availablePoints, setAvailablePoints] = useState<number[]>([]);
 
   const loadProgress = (): Progress => {
     try {
@@ -142,6 +146,13 @@ export default function FlashcardApp() {
       );
     }
 
+    // Apply tags filter if any tags are selected
+    if (selectedTags.length > 0) {
+      filteredCards = filteredCards.filter((card) =>
+        card.tags && card.tags.some((tag) => selectedTags.includes(tag))
+      );
+    }
+
     // Then apply study mode filter
     switch (studyMode) {
       case "marked":
@@ -181,6 +192,12 @@ export default function FlashcardApp() {
             currentQuestion.match(/\((\d+)\s*pont\)/i);
           const points = pointsMatch?.[1] ? parseInt(pointsMatch[1], 10) : 1;
 
+          // Extract tags from question title (format: [tag1, tag2])
+          const tagsMatch = currentQuestion.match(/\[([^\]]+)\]/);
+          const tags = tagsMatch?.[1]
+            ? tagsMatch[1].split(',').map(tag => tag.trim())
+            : [];
+
           questions.push({
             id: currentId,
             question: currentQuestion,
@@ -190,6 +207,7 @@ export default function FlashcardApp() {
             timesCorrect: 0,
             timesIncorrect: 0,
             points,
+            tags,
           });
         }
       };
@@ -350,6 +368,24 @@ export default function FlashcardApp() {
 
         setCards(restoredCards);
         setCurrentCardIndex(lastCardIndex);
+
+        // Extract all unique tags from cards
+        const allTags = new Set<string>();
+        restoredCards.forEach((card) => {
+          if (card.tags) {
+            card.tags.forEach((tag) => allTags.add(tag));
+          }
+        });
+        setAvailableTags(Array.from(allTags).sort());
+
+        // Extract all unique point values from cards
+        const allPoints = new Set<number>();
+        restoredCards.forEach((card) => {
+          if (card.points) {
+            allPoints.add(card.points);
+          }
+        });
+        setAvailablePoints(Array.from(allPoints).sort((a, b) => a - b));
       } catch (error) {
         console.error("Error loading flashcards:", error);
       }
@@ -596,6 +632,7 @@ export default function FlashcardApp() {
     }
   };
 
+
   useEffect(() => {
     if (
       showQuestionList &&
@@ -633,6 +670,7 @@ export default function FlashcardApp() {
     examCards,
     selectedPoints,
     isRandomOrder,
+    selectedTags,
   ]);
 
   const currentCard = isExamMode
@@ -736,11 +774,10 @@ export default function FlashcardApp() {
               <Button
                 variant="outline"
                 size="sm"
-                className={`border-gray-700 hover:bg-gray-800 ${
-                  studyMode === "marked"
-                    ? "bg-yellow-500/20 text-yellow-500"
-                    : ""
-                }`}
+                className={`border-gray-700 hover:bg-gray-800 ${studyMode === "marked"
+                  ? "bg-yellow-500/20 text-yellow-500"
+                  : ""
+                  }`}
                 onClick={toggleMarkedMode}
               >
                 <BookmarkCheck className="h-4 w-4" />
@@ -802,17 +839,22 @@ export default function FlashcardApp() {
           <QuestionRangeSelector
             totalQuestions={cards.length}
             initialRange={selectedRange}
-            onSelectRange={(start, end, randomOrder, points) => {
+            availableTags={availableTags}
+            availablePoints={availablePoints}
+            onSelectRange={(start, end, randomOrder, points, tags) => {
               setSelectedRange({ start, end });
               setIsRandomOrder(randomOrder);
               setSelectedPoints(points);
+              setSelectedTags(tags);
 
-              // Filter cards by both range and points
+              // Filter cards by range, points, and tags
               const cardsInRange = cards.filter(
                 (card) =>
                   card.id >= start &&
                   card.id <= end &&
-                  (points.length === 0 || points.includes(card.points || 1))
+                  (points.length === 0 || points.includes(card.points || 1)) &&
+                  (tags.length === 0 ||
+                    (card.tags && card.tags.some((tag) => tags.includes(tag))))
               );
 
               if (randomOrder) {
@@ -862,11 +904,10 @@ export default function FlashcardApp() {
                           : null
                       }
                       variant="outline"
-                      className={`w-full justify-start ${
-                        index === currentFilteredIndex
-                          ? "border-blue-500 bg-blue-500/10"
-                          : "border-gray-700"
-                      }`}
+                      className={`w-full justify-start ${index === currentFilteredIndex
+                        ? "border-blue-500 bg-blue-500/10"
+                        : "border-gray-700"
+                        }`}
                       onClick={() => handleCardSelect(index)}
                     >
                       <span className="mr-2">{card.id}.</span>
@@ -885,9 +926,8 @@ export default function FlashcardApp() {
             <span>
               {isExamMode
                 ? `Question ${currentCardIndex + 1} of ${examCards.length}`
-                : `Question ${currentFilteredIndex + 1} of ${
-                    filteredCards.length
-                  }`}
+                : `Question ${currentFilteredIndex + 1} of ${filteredCards.length
+                }`}
               {selectedRange && !isExamMode && (
                 <span className="ml-2 text-gray-500">
                   (Range: {selectedRange.start}-{selectedRange.end})
@@ -908,9 +948,8 @@ export default function FlashcardApp() {
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300"
               style={{
-                width: `${
-                  ((currentFilteredIndex + 1) / filteredCards.length) * 100
-                }%`,
+                width: `${((currentFilteredIndex + 1) / filteredCards.length) * 100
+                  }%`,
               }}
             />
           </div>

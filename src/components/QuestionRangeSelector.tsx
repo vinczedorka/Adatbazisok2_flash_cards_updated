@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "./ui/Button";
 import { HashIcon, Shuffle, Check } from "lucide-react";
-import PointsFilter from "./PointsFilter";
+import FilterPanel from "./FilterPanel";
 
 interface QuestionRangeSelectorProps {
   totalQuestions: number;
@@ -9,10 +9,13 @@ interface QuestionRangeSelectorProps {
     start: number,
     end: number,
     randomOrder: boolean,
-    points: number[]
+    points: number[],
+    tags: string[]
   ) => void;
   onClose: () => void;
   initialRange?: { start: number; end: number } | null;
+  availableTags: string[];
+  availablePoints: number[];
 }
 
 const RANGE_PREFERENCES_KEY = "range-preferences-v2";
@@ -22,6 +25,7 @@ interface RangePreferences {
   end: number;
   randomOrder: boolean;
   points: number[];
+  tags: string[];
 }
 
 const QuestionRangeSelector: React.FC<QuestionRangeSelectorProps> = ({
@@ -29,6 +33,8 @@ const QuestionRangeSelector: React.FC<QuestionRangeSelectorProps> = ({
   onSelectRange,
   onClose,
   initialRange,
+  availableTags,
+  availablePoints,
 }) => {
   const loadSavedPreferences = (): RangePreferences => {
     try {
@@ -47,6 +53,7 @@ const QuestionRangeSelector: React.FC<QuestionRangeSelectorProps> = ({
             end: parsed.end,
             randomOrder: parsed.randomOrder || false,
             points: parsed.points || [],
+            tags: parsed.tags || [],
           };
         }
       }
@@ -59,12 +66,18 @@ const QuestionRangeSelector: React.FC<QuestionRangeSelectorProps> = ({
       end: totalQuestions,
       randomOrder: false,
       points: [],
+      tags: [],
     };
   };
 
   const [selectedPoints, setSelectedPoints] = useState<number[]>(() => {
     const prefs = loadSavedPreferences();
     return prefs.points;
+  });
+
+  const [selectedTags, setSelectedTags] = useState<string[]>(() => {
+    const prefs = loadSavedPreferences();
+    return prefs.tags;
   });
 
   const [isRandomOrder, setIsRandomOrder] = useState(() => {
@@ -99,6 +112,7 @@ const QuestionRangeSelector: React.FC<QuestionRangeSelectorProps> = ({
       ...selectedRange,
       randomOrder: isRandomOrder,
       points: selectedPoints,
+      tags: selectedTags,
     };
 
     localStorage.setItem(RANGE_PREFERENCES_KEY, JSON.stringify(preferences));
@@ -106,7 +120,8 @@ const QuestionRangeSelector: React.FC<QuestionRangeSelectorProps> = ({
       selectedRange.start,
       selectedRange.end,
       isRandomOrder,
-      selectedPoints
+      selectedPoints,
+      selectedTags
     );
     onClose();
   };
@@ -126,6 +141,11 @@ const QuestionRangeSelector: React.FC<QuestionRangeSelectorProps> = ({
     if (selectedRange.start !== 1 || selectedRange.end !== totalQuestions) {
       parts.push(`Questions ${selectedRange.start}-${selectedRange.end}`);
     }
+    if (selectedTags.length > 0) {
+      parts.push(
+        `${selectedTags.length} tag${selectedTags.length > 1 ? "s" : ""}`
+      );
+    }
     if (selectedPoints.length > 0) {
       parts.push(
         `${selectedPoints.length} point filter${
@@ -137,6 +157,20 @@ const QuestionRangeSelector: React.FC<QuestionRangeSelectorProps> = ({
       parts.push("Random order");
     }
     return parts.length > 0 ? parts.join(" • ") : "No filters active";
+  };
+
+  const handleToggleTag = (tag: string) => {
+    setSelectedTags((prev) => {
+      if (prev.includes(tag)) {
+        return prev.filter((t) => t !== tag);
+      } else {
+        return [...prev, tag];
+      }
+    });
+  };
+
+  const handleClearTags = () => {
+    setSelectedTags([]);
   };
 
   return (
@@ -178,12 +212,15 @@ const QuestionRangeSelector: React.FC<QuestionRangeSelectorProps> = ({
 
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-6">
-            <div className="bg-gray-900/50 rounded-lg p-4">
-              <PointsFilter
-                selectedPoints={selectedPoints}
-                onSelectPoints={setSelectedPoints}
-              />
-            </div>
+            <FilterPanel
+              availableTags={availableTags}
+              selectedTags={selectedTags}
+              onToggleTag={handleToggleTag}
+              onClearTags={handleClearTags}
+              selectedPoints={selectedPoints}
+              onSelectPoints={setSelectedPoints}
+              availablePoints={availablePoints}
+            />
 
             <div className="bg-gray-900/50 rounded-lg p-4">
               <div className="text-sm font-medium mb-2 text-gray-400">
