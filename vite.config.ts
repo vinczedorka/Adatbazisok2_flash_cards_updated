@@ -9,31 +9,15 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,md}']
-      },
+      includeAssets: ['**/*'],
       manifest: {
-        name: 'Flashcard Study App',
-        short_name: 'Flashcards',
-        description: 'Study flashcards offline',
-        theme_color: '#111827',
-        background_color: '#111827',
-        display: 'standalone',
-        orientation: 'portrait',
-        start_url: '.',
-        icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
+        name: 'Adatbázisok 2',
+        short_name: 'Adatbázisok 2',
+        theme_color: '#111827'
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,md,png,pdf}'],
+        maximumFileSizeToCacheInBytes: 50 * 1024 * 1024 // 50MB for large PDFs
       }
     })
   ],

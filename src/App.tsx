@@ -226,6 +226,19 @@ export default function FlashcardApp() {
     }
   };
 
+  // Listen for PWA offline ready event
+  useEffect(() => {
+    const handleOfflineReady = () => {
+      toast.success('App is ready to work offline!', {
+        duration: 4000,
+        description: 'You can now use this app without internet connection.'
+      })
+    }
+
+    window.addEventListener('pwa-offline-ready', handleOfflineReady)
+    return () => window.removeEventListener('pwa-offline-ready', handleOfflineReady)
+  }, [])
+
   // Parse markdown and initialize cards
   useEffect(() => {
     const parseMarkdown = (markdown: string): Flashcard[] => {
