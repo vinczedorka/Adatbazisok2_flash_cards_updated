@@ -849,7 +849,7 @@ export default function FlashcardApp() {
     <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="container mx-auto px-4 pt-8 max-w-6xl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+        <div className="flex flex-row justify-between items-center gap-4 mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
             Adatbázisok 2 vizsga
           </h1>
@@ -1110,13 +1110,13 @@ export default function FlashcardApp() {
           <div className="grid grid-cols-2 gap-8 mb-4">
             {/* First card - Question */}
             <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
-              <CardContent className="p-6">
-                <div className="h-[60vh] max-h-[600px] flex flex-col">
-                  <div className="mb-4 text-sm font-medium text-gray-400">
+              <CardContent className="p-4 sm:p-6">
+                <div className="h-[45vh] sm:h-[60vh] max-h-[600px] flex flex-col">
+                  <div className="mb-3 sm:mb-4 text-sm font-medium text-gray-400">
                     Question:
                   </div>
                   <div className="flex-1 overflow-y-auto pr-2">
-                    <div className="text-xl leading-relaxed">
+                    <div className="text-lg sm:text-xl leading-relaxed">
                       <MarkdownRenderer
                         content={currentCard?.question}
                         imagePath={undefined}
@@ -1129,13 +1129,13 @@ export default function FlashcardApp() {
 
             {/* Second card - Answer */}
             <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
-              <CardContent className="p-6">
-                <div className="h-[60vh] max-h-[600px] flex flex-col">
-                  <div className="mb-4 text-sm font-medium text-gray-400">
+              <CardContent className="p-4 sm:p-6">
+                <div className="h-[45vh] sm:h-[60vh] max-h-[600px] flex flex-col">
+                  <div className="mb-3 sm:mb-4 text-sm font-medium text-gray-400">
                     Answer:
                   </div>
                   <div className="flex-1 overflow-y-auto pr-2">
-                    <div className="text-xl leading-relaxed">
+                    <div className="text-lg sm:text-xl leading-relaxed">
                       <MarkdownRenderer
                         content={currentCard?.answer}
                         imagePath={currentCard?.imagePath}

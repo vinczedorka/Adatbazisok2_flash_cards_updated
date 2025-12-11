@@ -71,7 +71,7 @@ const FlipCard: React.FC<FlipCardProps> = ({
   };
 
   return (
-    <div className="mb-4 relative" style={{ height: 'calc(60vh + 48px)', maxHeight: '648px' }}>
+    <div className="mb-4 relative" style={{ height: 'calc(45vh + 48px)', maxHeight: '648px' }}>
 
       <motion.div
         style={{ x, rotate, opacity }}
@@ -104,13 +104,13 @@ const FlipCard: React.FC<FlipCardProps> = ({
           >
             {/* Question side */}
             <Card className="mb-4 bg-gray-800 border-gray-700 absolute w-full backface-hidden">
-              <CardContent className="p-6">
-                <div className="h-[60vh] max-h-[600px] flex flex-col">
-                  <div className="mb-4 text-sm font-medium text-gray-400">
+              <CardContent className="p-4 sm:p-6">
+                <div className="h-[45vh] sm:h-[60vh] max-h-[600px] flex flex-col">
+                  <div className="mb-3 sm:mb-4 text-sm font-medium text-gray-400">
                     Question:
                   </div>
                   <div className="flex-1 overflow-y-auto pr-2">
-                    <div className="text-xl leading-relaxed">
+                    <div className="text-lg sm:text-xl leading-relaxed">
                       <MarkdownRenderer content={question} />
                     </div>
                   </div>
@@ -121,13 +121,13 @@ const FlipCard: React.FC<FlipCardProps> = ({
             {/* Answer side */}
             <Card className="mb-4 bg-gray-800 border-gray-700 absolute w-full backface-hidden"
               style={{ transform: 'rotateY(180deg)' }}>
-              <CardContent className="p-6">
-                <div className="h-[60vh] max-h-[600px] flex flex-col">
-                  <div className="mb-4 text-sm font-medium text-gray-400">
+              <CardContent className="p-4 sm:p-6">
+                <div className="h-[45vh] sm:h-[60vh] max-h-[600px] flex flex-col">
+                  <div className="mb-3 sm:mb-4 text-sm font-medium text-gray-400">
                     Answer:
                   </div>
                   <div className="flex-1 overflow-y-auto pr-2">
-                    <div className="text-xl leading-relaxed">
+                    <div className="text-lg sm:text-xl leading-relaxed">
                       <MarkdownRenderer
                         content={answer}
                         imagePath={imagePath}
