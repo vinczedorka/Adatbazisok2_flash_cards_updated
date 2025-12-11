@@ -14,11 +14,11 @@ interface FlipCardProps {
   currentIndex: number;
 }
 
-const FlipCard: React.FC<FlipCardProps> = ({ 
-  question, 
-  answer, 
-  imagePath, 
-  onKnow, 
+const FlipCard: React.FC<FlipCardProps> = ({
+  question,
+  answer,
+  imagePath,
+  onKnow,
   onDontKnow,
   showAnswer,
   setShowAnswer,
@@ -30,11 +30,11 @@ const FlipCard: React.FC<FlipCardProps> = ({
   const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
   const [isDragging, setIsDragging] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
-  
+
   useEffect(() => {
     controls.start({ x: 0, opacity: 1 });
   }, [currentIndex, controls]);
-  
+
   const handleDragStart = () => {
     setIsDragging(true);
   };
@@ -42,7 +42,7 @@ const FlipCard: React.FC<FlipCardProps> = ({
   const handleDragEnd = async (_event: MouseEvent | TouchEvent | PointerEvent, info: { offset: { x: number } }) => {
     setIsDragging(false);
     const { offset } = info;
-    
+
     if (offset.x > 100) {
       await controls.start({ x: 500, opacity: 0 });
       onKnow();
@@ -71,8 +71,8 @@ const FlipCard: React.FC<FlipCardProps> = ({
   };
 
   return (
-    <div className="mb-12 relative min-h-[500px]">
-      
+    <div className="mb-4 relative" style={{ height: 'calc(60vh + 48px)', maxHeight: '648px' }}>
+
       <motion.div
         style={{ x, rotate, opacity }}
         drag="x"
@@ -89,10 +89,10 @@ const FlipCard: React.FC<FlipCardProps> = ({
       >
         <div className="perspective-1000">
           <motion.div
-            animate={{ 
+            animate={{
               rotateY: showAnswer ? 180 : 0,
             }}
-            transition={{ 
+            transition={{
               duration: 0.5,
               type: "tween",
               ease: "easeInOut"
@@ -105,11 +105,11 @@ const FlipCard: React.FC<FlipCardProps> = ({
             {/* Question side */}
             <Card className="mb-4 bg-gray-800 border-gray-700 absolute w-full backface-hidden">
               <CardContent className="p-6">
-                <div className="min-h-[500px] flex flex-col">
+                <div className="h-[60vh] max-h-[600px] flex flex-col">
                   <div className="mb-4 text-sm font-medium text-gray-400">
                     Question:
                   </div>
-                  <div className="flex-grow">
+                  <div className="flex-1 overflow-y-auto pr-2">
                     <div className="text-xl leading-relaxed">
                       <MarkdownRenderer content={question} />
                     </div>
@@ -120,15 +120,15 @@ const FlipCard: React.FC<FlipCardProps> = ({
 
             {/* Answer side */}
             <Card className="mb-4 bg-gray-800 border-gray-700 absolute w-full backface-hidden"
-                 style={{ transform: 'rotateY(180deg)' }}>
+              style={{ transform: 'rotateY(180deg)' }}>
               <CardContent className="p-6">
-                <div className="min-h-[500px] flex flex-col">
+                <div className="h-[60vh] max-h-[600px] flex flex-col">
                   <div className="mb-4 text-sm font-medium text-gray-400">
                     Answer:
                   </div>
-                  <div className="flex-grow">
+                  <div className="flex-1 overflow-y-auto pr-2">
                     <div className="text-xl leading-relaxed">
-                      <MarkdownRenderer 
+                      <MarkdownRenderer
                         content={answer}
                         imagePath={imagePath}
                       />

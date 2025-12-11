@@ -7,6 +7,7 @@ import {
   RotateCcw,
   Hash as HashIcon,
   BookmarkCheck,
+  RefreshCw,
 } from 'lucide-react';
 
 interface MobileMenuProps {
@@ -20,6 +21,8 @@ interface MobileMenuProps {
   onToggleMarkedMode: () => void;
   onReset: () => void;
   onToggleRangeSelector: () => void;
+  onRefreshCache: () => void;
+  isRefreshing: boolean;
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({
@@ -33,6 +36,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   onToggleMarkedMode,
   onReset,
   onToggleRangeSelector,
+  onRefreshCache,
+  isRefreshing,
 }) => {
   if (!isOpen) return null;
 
@@ -87,9 +92,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
         <Button
           variant="outline"
-          className={`w-full justify-start border-gray-700 ${
-            studyMode === 'marked' ? 'bg-yellow-500/20 text-yellow-500' : ''
-          }`}
+          className={`w-full justify-start border-gray-700 ${studyMode === 'marked' ? 'bg-yellow-500/20 text-yellow-500' : ''
+            }`}
           onClick={() => {
             onToggleMarkedMode();
             onClose();
@@ -109,6 +113,19 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
         >
           <RotateCcw className="mr-2 h-4 w-4" />
           Reset Progress
+        </Button>
+
+        <Button
+          variant="outline"
+          className="w-full justify-start border-gray-700"
+          onClick={() => {
+            onRefreshCache();
+            onClose();
+          }}
+          disabled={isRefreshing}
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Refresh Questions
         </Button>
 
         <Button

@@ -52,6 +52,22 @@ Az alkalmazás ezután elérhető a következő címen: `http://localhost:5173`
   - Megjelölt kártyák perzisztens tárolása
   - Vizsga és tartomány beállítások megjegyzése
 
+### Offline Támogatás
+- **Automatikus gyorsítótárazás**:
+  - Az első betöltéskor az összes kérdés és válasz mentésre kerül helyben
+  - Az alkalmazás ezután internetkapcsolat nélkül is használható
+  - A haladás és statisztikák mindig mentésre kerülnek
+- **Cache státusz jelző**:
+  - Vizuális visszajelzés mutatja, hogy elérhető-e az offline mód
+  - Az utolsó frissítés időpontja látható
+  - Zöld jelzés: offline módban működik
+  - Kék jelzés: internetkapcsolat aktív
+- **Manuális frissítés**:
+  - Frissítés gomb (⟳) a fejlécben
+  - Mobilon a menüben található "Refresh Questions" opció
+  - Új kérdések letöltése amikor internetkapcsolat elérhető
+  - Automatikus újratöltés a frissítés után
+
 ### Navigáció és szűrés
 - **Kérdéslista**: Gyors navigáció a kérdések között
 - **Tartományválasztó**: 
@@ -84,7 +100,7 @@ Az alkalmazás ezután elérhető a következő címen: `http://localhost:5173`
 - Tailwind CSS
 - shadcn/ui komponensek
 - Lucide ikonok
-- Local Storage API a haladás mentéséhez
+- Local Storage API a haladás mentéséhez és offline támogatáshoz
 
 ## Telepítés és Futtatás
 

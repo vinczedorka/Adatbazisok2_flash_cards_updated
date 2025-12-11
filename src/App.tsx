@@ -22,6 +22,7 @@ import {
   Bookmark,
   BookmarkCheck,
   Menu,
+  RefreshCw,
 } from "lucide-react";
 
 // Type definitions
@@ -49,9 +50,11 @@ type Progress = {
   lastCardIndex: number;
 };
 
-// Local storage key
+// Local storage keys
 const PROGRESS_KEY = "flashcard-progress";
 const LAST_POSITION_KEY = "flashcard-last-position";
+const CACHED_DATA_KEY = "flashcard-cached-data";
+const CACHE_TIMESTAMP_KEY = "flashcard-cache-timestamp";
 
 export default function FlashcardApp() {
   const [cards, setCards] = useState<Flashcard[]>([]);
@@ -86,6 +89,37 @@ export default function FlashcardApp() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [availablePoints, setAvailablePoints] = useState<number[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [cacheTimestamp, setCacheTimestamp] = useState<string | null>(null);
+  const [isUsingCache, setIsUsingCache] = useState(false);
+
+  // Cache management functions
+  const saveCachedData = (markdown: string) => {
+    try {
+      localStorage.setItem(CACHED_DATA_KEY, markdown);
+      localStorage.setItem(CACHE_TIMESTAMP_KEY, new Date().toISOString());
+      console.log("Data cached successfully for offline use");
+    } catch (error) {
+      console.error("Error caching data:", error);
+    }
+  };
+
+  const loadCachedData = (): string | null => {
+    try {
+      const cachedData = localStorage.getItem(CACHED_DATA_KEY);
+      const cacheTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+
+      if (cachedData && cacheTimestamp) {
+        console.log("Loaded data from cache (offline mode available)");
+        console.log("Cache timestamp:", cacheTimestamp);
+        return cachedData;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error loading cached data:", error);
+      return null;
+    }
+  };
 
   const loadProgress = (): Progress => {
     try {
@@ -333,12 +367,35 @@ export default function FlashcardApp() {
 
     const loadFlashcards = async () => {
       try {
-        const response = await fetch("kerdesek.md");
-        if (!response.ok) {
-          throw new Error("Failed to load flashcards");
+        let markdown: string | null = null;
+
+        // Try to load from cache first
+        markdown = loadCachedData();
+
+        // If no cache, try to fetch from network
+        if (!markdown) {
+          setIsUsingCache(false);
+          try {
+            console.log("No cached data found, fetching from network...");
+            const response = await fetch("kerdesek.md");
+            if (!response.ok) {
+              throw new Error("Failed to load flashcards from network");
+            }
+            markdown = await response.text();
+            // Save to cache for offline use
+            saveCachedData(markdown);
+            const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+            setCacheTimestamp(timestamp);
+          } catch (networkError) {
+            console.error("Network fetch failed:", networkError);
+            throw new Error("Unable to load data: no cache available and network failed");
+          }
+        } else {
+          setIsUsingCache(true);
+          const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+          setCacheTimestamp(timestamp);
         }
 
-        const markdown = await response.text();
         const parsedCards = parseMarkdown(markdown);
         console.log(
           "Parsed questions:",
@@ -388,6 +445,8 @@ export default function FlashcardApp() {
         setAvailablePoints(Array.from(allPoints).sort((a, b) => a - b));
       } catch (error) {
         console.error("Error loading flashcards:", error);
+        // Show user-friendly error message
+        alert("Unable to load flashcards. Please check your connection and refresh the page.");
       }
     };
 
@@ -527,6 +586,28 @@ export default function FlashcardApp() {
     localStorage.removeItem(PROGRESS_KEY);
     localStorage.removeItem(LAST_POSITION_KEY);
     window.location.reload();
+  };
+
+  const handleRefreshCache = async () => {
+    if (isRefreshing) return;
+
+    setIsRefreshing(true);
+    try {
+      console.log("Refreshing data from network...");
+      const response = await fetch("kerdesek.md");
+      if (!response.ok) {
+        throw new Error("Failed to refresh data");
+      }
+      const markdown = await response.text();
+      saveCachedData(markdown);
+      alert("Data updated successfully! The page will reload.");
+      window.location.reload();
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      alert("Failed to refresh data. Please check your internet connection.");
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleStartExam = (
@@ -724,6 +805,21 @@ export default function FlashcardApp() {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="container mx-auto px-4 pt-8 max-w-6xl">
+        {/* Cache Status Indicator */}
+        {cacheTimestamp && (
+          <div className="mb-4 p-3 bg-gray-800 rounded-lg border border-gray-700">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${isUsingCache ? 'bg-green-500' : 'bg-blue-500'}`}></div>
+                <span className="text-gray-400">
+                  {isUsingCache ? '✓ Offline mode ready' : '✓ Connected'} -
+                  Last updated: {new Date(cacheTimestamp).toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
@@ -787,8 +883,19 @@ export default function FlashcardApp() {
                 size="sm"
                 className="border-gray-700 hover:bg-gray-800"
                 onClick={handleReset}
+                title="Reset Progress"
               >
                 <RotateCcw className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-gray-700 hover:bg-gray-800"
+                onClick={handleRefreshCache}
+                disabled={isRefreshing}
+                title="Refresh Questions (requires internet)"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               </Button>
               <Button
                 variant="outline"
@@ -832,6 +939,8 @@ export default function FlashcardApp() {
           onToggleMarkedMode={toggleMarkedMode}
           onReset={handleReset}
           onToggleRangeSelector={() => setShowRangeSelector(true)}
+          onRefreshCache={handleRefreshCache}
+          isRefreshing={isRefreshing}
         />
 
         {/* Add Range Selector */}
@@ -961,11 +1070,11 @@ export default function FlashcardApp() {
             {/* First card - Question */}
             <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
               <CardContent className="p-6">
-                <div className="min-h-[500px] flex flex-col">
+                <div className="h-[60vh] max-h-[600px] flex flex-col">
                   <div className="mb-4 text-sm font-medium text-gray-400">
                     Question:
                   </div>
-                  <div className="flex-grow">
+                  <div className="flex-1 overflow-y-auto pr-2">
                     <div className="text-xl leading-relaxed">
                       <MarkdownRenderer
                         content={currentCard?.question}
@@ -980,11 +1089,11 @@ export default function FlashcardApp() {
             {/* Second card - Answer */}
             <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
               <CardContent className="p-6">
-                <div className="min-h-[500px] flex flex-col">
+                <div className="h-[60vh] max-h-[600px] flex flex-col">
                   <div className="mb-4 text-sm font-medium text-gray-400">
                     Answer:
                   </div>
-                  <div className="flex-grow">
+                  <div className="flex-1 overflow-y-auto pr-2">
                     <div className="text-xl leading-relaxed">
                       <MarkdownRenderer
                         content={currentCard?.answer}
@@ -1009,7 +1118,9 @@ export default function FlashcardApp() {
           />
         )}
         {/* Action Buttons */}
-        {renderCardControls()}
+        <div className="mt-4">
+          {renderCardControls()}
+        </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-8 mb-4">
